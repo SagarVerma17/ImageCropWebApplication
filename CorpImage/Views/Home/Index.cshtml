@@ -1,0 +1,95 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.css">
+
+<div class="card">
+    <div class="card-header">Crop Image file</div>
+    <div class="card-body">
+        <div id="cropper1"></div>
+        <input type="file" id="BrowseFile" class="form-control" value="Choose image" accept="image/*" />
+        <button id="btnCrop" style="margin-top:10px" name="btnCrop" class="btn btn-success">Preview & Crop</button>
+        <div id="preview"></div>
+        <button id="btnSave" style="margin-top:10px;display:none;" name="btnSave" class="btn btn-primary">Save</button>
+        <button id="btnCancel" style="margin-top:10px;display:none;" name="btnCancel" class="btn btn-danger">Cancel</button>
+    </div>
+</div>
+
+@section scripts
+{
+    <script type="text/javascript">
+        var basic;
+
+        $('#BrowseFile').on('change', function () { readFile(this); });
+
+        function readFile(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+
+                reader.onload = function (e) {
+                    $('#cropper1').croppie('destroy');
+                    basic = $('#cropper1').croppie({
+                        viewport: { width: 300, height: 300 },
+                        boundary: { width: 800, height: 500 },
+                        showZoomer: true,
+                        url: e.target.result,
+                        enableExif: true
+                    });
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        $('#btnCrop').on('click', function () {
+            $('#preview').html('');
+            basic.croppie('result', 'blob').then(function (blob) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    $('#preview').html('<img src="' + e.target.result + '" style="max-width:100%; max-height:300px;" />');
+                    $('#btnCrop').hide();
+                    $('#btnSave').show();
+                    $('#btnCancel').show();
+                }
+                reader.readAsDataURL(blob);
+            });
+        });
+
+        $('#btnSave').on('click', function () {
+            basic.croppie('result', 'blob').then(function (blob) {
+                var formData = new FormData();
+                formData.append('filename', $('#BrowseFile').prop('files')[0].name);//'FileName.png'
+                formData.append('blob', blob);
+                var myAppUrlSettings = {
+                    MyUsefulUrl: '@Url.Action("SaveCroppedImage", "Home")'
+                }
+
+                var request = new XMLHttpRequest();
+                request.open('POST', myAppUrlSettings.MyUsefulUrl);
+                request.send(formData);
+                request.onreadystatechange = function () {
+                    if (this.readyState == XMLHttpRequest.DONE && this.status === 200) {
+                        var response = JSON.parse(request.responseText);
+
+                        if (response.message == "OK") {
+                            alert('Photo Cropped Successfully!');
+                            window.location.reload();
+                        }
+
+                        if (response.message == "ERROR") {
+                            window.location.reload();
+                        }
+                    }
+                }
+            });
+        });
+
+        $('#btnCancel').on('click', function () {
+            $('#preview').html('');
+            $('#btnCrop').show();
+            $('#btnSave').hide();
+            $('#btnCancel').hide();
+        });
+
+    </script>
+}
