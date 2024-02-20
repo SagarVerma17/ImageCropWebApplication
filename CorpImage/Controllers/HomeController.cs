@@ -75,6 +75,13 @@ namespace CorpImage.Controllers
         }
 
 
+        [HttpGet]
+        public IActionResult GetImages()
+        {
+            var images = _context.Images.ToList();
+            return Json(images);
+        }
+
 
         public IActionResult Privacy()
         {

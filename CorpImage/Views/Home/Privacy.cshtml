@@ -1,6 +1,37 @@
-﻿@{
+﻿@model List<CorpImage.Models.ImageModel>
+@{
     ViewData["Title"] = "Privacy Policy";
 }
-<h1>@ViewData["Title"]</h1>
 
-<p>Use this page to detail your site's privacy policy.</p>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Image Gallery</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+    <div class="container mt-4">
+        <h1>Image Gallery</h1>
+        <div class="row" id="imagesContainer">
+            <!-- Images will be dynamically loaded here -->
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $.ajax({
+                url: "/Home/GetImages",
+                type: "GET",
+                success: function (result) {
+                    result.forEach(function (image) {
+                        $("#imagesContainer").append('<div class="col-md-4 mb-4"><div class="card"><img src="data:image;base64,' + image.imageData + '" class="card-img-top" alt="' + image.fileName + '"><div class="card-body"><h5 class="card-title">' + image.fileName + '</h5></div></div></div>');
+                    });
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>
